@@ -20,7 +20,7 @@ EXAM_FILES = {
 SUBJECT_NAMES = {
     "maths": "Mathématiques",
     "physics": "Physique-Chimie",
-    "english": "Anglais",
+    "english": "English",
 }
 
 _exam_cache = {}
@@ -106,11 +106,15 @@ def generate_exam(subject_key: str, topic: str = "") -> dict:
         "Réponds UNIQUEMENT avec le JSON."
     )
 
+    # Clear GPU cache before generation to avoid OOM
+    import torch
+    torch.cuda.empty_cache()
+
     raw = generate_content(
         context=context,
         instruction=instruction,
         system_prompt=system_prompt,
-        max_tokens=4000,
+        max_tokens=2500,
         temperature=0.4,
     )
 
@@ -128,7 +132,17 @@ def generate_exam(subject_key: str, topic: str = "") -> dict:
     }
 
 def _parse_json_response(raw: str) -> dict:
+    # Try direct parse first
+    try:
+        return json.loads(raw.strip())
+    except json.JSONDecodeError:
+        pass
+
+    # Fall back to regex extraction of JSON object
     json_match = re.search(r'\{.*\}', raw, re.DOTALL)
+    if not json_match:
+        # Try to find JSON after any prefix text
+        json_match = re.search(r'(\{.*\})', raw, re.DOTALL)
     if not json_match:
         return {"error": "Le modèle n'a pas généré un JSON valide"}
 
@@ -136,4 +150,11 @@ def _parse_json_response(raw: str) -> dict:
         return json.loads(json_match.group())
     except json.JSONDecodeError as e:
         logger.error(f"Failed to parse exam JSON: {e}")
-        return {"error": f"Erreur de parsing du JSON: {str(e)}"}
+        # Try to fix common JSON issues (unescaped chars, etc.)
+        cleaned = json_match.group()
+        cleaned = re.sub(r',\s*}', '}', cleaned)  # trailing commas
+        cleaned = re.sub(r',\s*\]', ']', cleaned)  # trailing commas in arrays
+        try:
+            return json.loads(cleaned)
+        except json.JSONDecodeError:
+            return {"error": f"Erreur de parsing du JSON: {str(e)}"}

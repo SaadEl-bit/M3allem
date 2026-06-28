@@ -21,6 +21,9 @@ _conversation_memory: dict[str, list[dict]] = {}
 MAX_HISTORY_PER_SESSION = 20
 MAX_SESSIONS = 500
 
+# Full extracted document text per session (for better context retrieval)
+_session_documents: dict[str, str] = {}
+
 def get_retriever() -> RAGRetriever:
     global _retriever
     if _retriever is not None:
@@ -60,6 +63,9 @@ def chunk_text(text: str, chunk_size: int = 250, overlap: int = 50) -> list[str]
 def add_to_session_rag(session_id: str, text: str, subject: str) -> None:
     """Chunks the extracted text and stores it in an ephemeral ChromaDB collection for this session."""
     retriever = get_retriever()
+    
+    # Store full text for direct inclusion in context
+    _session_documents[session_id] = text
     
     # Create or get collection
     collection = _ephemeral_client.get_or_create_collection(name=f"session_{session_id}")
@@ -115,13 +121,22 @@ def retrieve_context(question: str, subject: str, session_id: Optional[str] = No
     # 2. Retrieve from temporary session DB (if exists)
     session_chunks = []
     if session_id:
+        # Include full document text if available (helps with short queries)
+        full_doc = _session_documents.get(session_id)
+        if full_doc:
+            session_chunks.append({
+                "text": full_doc,
+                "metadata": {"source_file": "Uploaded Document", "page_number": "N/A", "subject": subject},
+                "distance": 0.0,
+            })
+        
         try:
             collection = _ephemeral_client.get_collection(name=f"session_{session_id}")
             query_embedding = retriever._model.encode(question, normalize_embeddings=True).tolist()
             
             results = collection.query(
                 query_embeddings=[query_embedding],
-                n_results=min(3, collection.count()),
+                n_results=min(5, collection.count()),
                 include=["documents", "metadatas", "distances"]
             )
             

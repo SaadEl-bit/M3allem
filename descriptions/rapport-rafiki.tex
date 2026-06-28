@@ -1,0 +1,1589 @@
+\documentclass[12pt,a4paper]{report}
+
+% === PACKAGES ===
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french,english]{babel}
+\usepackage{graphicx}
+\usepackage{amsmath,amssymb}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{geometry}
+\usepackage{setspace}
+\usepackage{fancyhdr}
+\usepackage{tocloft}
+\usepackage{xcolor}
+\usepackage{longtable}
+\usepackage{enumitem}
+\usepackage{textcomp}
+
+% === MISE EN PAGE ===
+\geometry{top=2.5cm, bottom=2.5cm, left=2.5cm, right=2.5cm}
+\onehalfspacing
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+
+% === COULEURS ===
+\definecolor{bleuprincipal}{HTML}{1a365d}
+\definecolor{grisous titre}{HTML}{4a5568}
+\definecolor{vertcode}{HTML}{2d3748}
+
+% === STYLE DES TITRES ===
+\usepackage{titlesec}
+\titleformat{\chapter}[hang]{\Huge\bfseries\color{bleuprincipal}}{}{0pt}{}
+\titleformat{\section}[hang]{\LARGE\bfseries\color{bleuprincipal}}{}{0pt}{}
+\titleformat{\subsection}[hang]{\Large\bfseries\color{grisous titre}}{}{0pt}{}
+\titleformat{\subsubsection}[hang]{\large\bfseries\color{grisous titre}}{}{0pt}{}
+
+% === STYLE EN-TÊTE / PIED ===
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\textcolor{bleuprincipal}{Rafiki — رفيقي}}
+\fancyhead[R]{\textcolor{grisous titre}{\leftmark}}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.5pt}
+
+% === STYLE CODE ===
+\lstset{
+    language=Python,
+    basicstyle=\ttfamily\small,
+    backgroundcolor=\color{gray!10},
+    frame=single,
+    breaklines=true,
+    captionpos=b,
+    numbers=left,
+    numberstyle=\tiny,
+    stepnumber=1,
+    tabsize=4
+}
+
+% === HYPERLIENS ===
+\hypersetup{
+    colorlinks=true,
+    linkcolor=bleuprincipal,
+    urlcolor=blue,
+    citecolor=bleuprincipal
+}
+
+% === COMMANDES PERSONNALISÉES ===
+\newcommand{\point}[1]{\item \textbf{#1}}
+\newcommand{\statutok}{\textcolor{green!80!black}{$\checkmark$}}
+\newcommand{\statutpending}{\textcolor{orange!80!black}{$\bigcirc$}}
+\newcommand{\titrepartie}[1]{%
+    \begin{center}
+        \Huge\textbf{\textcolor{bleuprincipal}{#1}}
+    \end{center}
+}
+
+\begin{document}
+
+% ============================================================
+% PAGE DE GARDE
+% ============================================================
+\begin{titlepage}
+    \centering
+    \vspace*{3cm}
+    {\Huge\textbf{Rafiki — رفيقي}}\\[0.5cm]
+    {\Huge\textbf{Moroccan Adaptive AI Tutor}}\\[1.5cm]
+    {\LARGE Plateforme de Tutorat Adaptatif par\\ Intelligence Artificielle\\ pour les Élèves du 2ème Baccalauréat Marocain}\\[2cm]
+    \vfill
+    {\large \textbf{[Nom de l'étudiant]}}\\[0.5cm]
+    {\large [Établissement]}\\[0.5cm]
+    {\large Encadrant : [Professeur]}\\[0.5cm]
+    {\large Année universitaire [202X-202Y]}\\[0.5cm]
+    {\large \textcolor{grisous titre}{Projet de Fin d'Études}}\\[1cm]
+    \vspace{2cm}
+\end{titlepage}
+
+% ============================================================
+% RÉSUMÉ
+% ============================================================
+\chapter*{Résumé}
+\addcontentsline{toc}{chapter}{Résumé}
+
+Ce projet présente \textbf{Rafiki — رفيقي}, un tuteur intelligent adaptatif destiné aux élèves marocains de la 2ème année Baccalauréat. Face au manque d'outils numériques gratuits et adaptés au curriculum officiel marocain, Rafiki propose une plateforme complète combinant plusieurs technologies d'intelligence artificielle : un moteur de \textbf{Recherche Sémantique (RAG)} ancré dans les programmes officiels, un \textbf{modèle de langage fine-tuné (LoRA)} sur le style pédagogique marocain, et un système \textbf{d'OCR temps réel} basé sur un Vision LLM. La plateforme offre six fonctionnalités clés : un chat Q\&A contextuel, la correction d'exercices avec OCR, la consultation du Cadre Référenciel, la visualisation des cours avec rendu LaTeX, la génération d'exercices et la génération d'examens. L'architecture repose sur trois serveurs distincts (Vercel, Kaggle, HuggingFace) fonctionnant intégralement sur des offres gratuites (free-tier), garantissant un coût zéro pour les utilisateurs. Le MVP couvre les matières Mathématiques, Physique-Chimie et Anglais, avec une vision d'extension à toutes les matières du Bac marocain.
+
+\vspace{0.5cm}
+\textbf{Mots-clés :} IA, tutorat adaptatif, RAG, fine-tuning, LoRA, 2ème Bac, Maroc, OCR, Vision LLM, ChromaDB, Next.js
+
+% ============================================================
+% ABSTRACT
+% ============================================================
+\begin{otherlanguage}{english}
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+
+This project presents \textbf{Rafiki — رفيقي}, an adaptive AI tutor designed for Moroccan 2nd year Baccalaureate students. Addressing the lack of free digital tools tailored to the official Moroccan curriculum, Rafiki offers a comprehensive platform combining several artificial intelligence technologies: a \textbf{Semantic Search engine (RAG)} grounded in official curriculum content, a \textbf{fine-tuned language model (LoRA)} trained on the Moroccan pedagogical style, and a \textbf{real-time OCR system} powered by a Vision LLM. The platform provides six key features: a contextual Q\&A chat, OCR-based exercise correction, curriculum framework browsing, course visualization with LaTeX rendering, exercise generation, and exam generation. The architecture relies on three distinct servers (Vercel, Kaggle, HuggingFace) all operating on free-tier plans, ensuring zero cost for users. The MVP covers Mathematics, Physics-Chemistry, and English, with a vision to expand to all Moroccan Baccalaureate subjects.
+
+\vspace{0.5cm}
+\textbf{Keywords:} AI, adaptive tutoring, RAG, fine-tuning, LoRA, 2nd Bac, Morocco, OCR, Vision LLM, ChromaDB, Next.js
+\end{otherlanguage}
+
+% ============================================================
+% TABLE DES MATIÈRES
+% ============================================================
+\tableofcontents
+\newpage
+
+% ============================================================
+% LISTE DES FIGURES ET TABLEAUX
+% ============================================================
+\listoffigures
+\addcontentsline{toc}{chapter}{Liste des figures}
+\listoftables
+\addcontentsline{toc}{chapter}{Liste des tableaux}
+\newpage
+
+% ============================================================
+% CHAPITRE 1 : INTRODUCTION
+% ============================================================
+\chapter{Introduction}
+
+\section{Contexte et motivation}
+
+\subsection{État de l'éducation au Maroc}
+Le système éducatif marocain fait face à des défis structurels majeurs. Les classes comptent en moyenne plus de 40 élèves, limitant la capacité des enseignants à offrir un soutien individualisé. L'examen national du Baccalauréat, dont l'enjeu est crucial pour l'avenir des élèves, génère une pression considérable. Les ressources disponibles sont souvent limitées : manuels scolaires parfois obsolètes, absence de plateformes numériques adaptées, et coût élevé des cours particuliers.
+
+\subsection{Problème identifié}
+Il n'existe actuellement aucun outil numérique gratuit qui :
+\begin{itemize}
+    \item Suit spécifiquement le programme officiel marocain
+    \item Offre un tutorat personnalisé avec intelligence artificielle
+    \item Permet la correction automatique d'exercices
+    \item S'adapte au format bilingue (français/anglais) du curriculum
+\end{itemize}
+
+\subsection{Solutions existantes et leurs limites}
+\begin{table}[h!]
+    \centering
+    \begin{tabular}{p{4cm} p{5cm} p{5cm}}
+        \toprule
+        \textbf{Solution} & \textbf{Forces} & \textbf{Limites} \\
+        \midrule
+        Khan Academy & Contenu pédagogique de qualité & Non adapté au curriculum marocain \\
+        ChatGPT/Gemini & Génération de texte puissante & Réponses généralistes, pas ancrées dans le programme \\
+        Plateformes marocaines & Contenu local & Souvent payantes, pas de tutorat IA \\
+        Duolingo & Apprentissage adaptatif & Limité aux langues \\
+        \bottomrule
+    \end{tabular}
+    \caption{Analyse des solutions existantes}
+\end{table}
+
+\subsection{Motivation du projet}
+Ce projet est né d'un constat simple : comment démocratiser l'accès à un tuteur IA gratuit, pertinent et spécifiquement adapté au curriculum marocain ? L'objectif est de mettre la puissance de l'intelligence artificielle au service des élèves marocains, sans barrière financière.
+
+\section{Problématique}
+
+\subsection{Question centrale}
+\textit{« Comment offrir un accompagnement scolaire personnalisé, gratuit et adapté au curriculum marocain aux élèves de 2ème Bac ? »}
+
+\subsection{Sous-questions}
+\begin{enumerate}
+    \item Comment ancrer les réponses de l'IA dans le contenu officiel du programme (éviter les hallucinations) ?
+    \item Comment rendre l'outil accessible sans frais pour les étudiants (architecture 100\% free-tier) ?
+    \item Comment traiter le format multilingue (français pour Maths/Physique, anglais pour English) ?
+    \item Comment gérer l'OCR de documents manuscrits ou imprimés sans coût API ?
+\end{enumerate}
+
+\section{Objectifs du projet}
+
+\subsection{Objectif principal}
+Développer un tuteur IA capable de répondre aux questions des élèves en s'appuyant uniquement sur le curriculum officiel marocain, avec des explications pas-à-pas dans le style pédagogique local.
+
+\subsection{Objectifs secondaires}
+\begin{itemize}
+    \item Correction automatique d'exercices avec OCR temps réel
+    \item Consultation interactive du Cadre Référenciel (الإطار المرجعي)
+    \item Visualisation des cours officiels avec rendu LaTeX des formules
+    \item Génération d'exercices et d'examens par intelligence artificielle
+    \item Architecture 100\% free-tier (zéro coût de déploiement et d'exploitation)
+    \item Base de connaissances pré-construite, prête à l'emploi sans upload nécessaire
+\end{itemize}
+
+\section{Cahier des charges}
+
+\subsection{Cahier des charges fonctionnel}
+\begin{itemize}
+    \item Chat Q\&A avec RAG : réponses pas-à-pas ancrées dans le programme officiel
+    \item Correction d'exercices : upload PDF/image $\rightarrow$ OCR $\rightarrow$ IA $\rightarrow$ correction détaillée
+    \item Consultation du Cadre Référenciel : arbre d'objectifs interactif avec recherche
+    \item Visualisation des cours : rendu markdown + LaTeX avec KaTeX
+    \item Génération d'exercices : sélection matière/chapitre $\rightarrow$ exercice unique + solution
+    \item Génération d'examens : basée sur des sujets réels du Bac (few-shot)
+    \item Mémoire de conversation : historique session-based (20 messages)
+\end{itemize}
+
+\subsection{Cahier des charges technique}
+\begin{itemize}
+    \item Base de connaissances vectorielle (ChromaDB) pré-construite à partir des PDFs officiels
+    \item Modèle de langage fine-tuné (LoRA sur Qwen2.5-1.5B)
+    \item OCR via Vision LLM (Qwen2.5-VL-3B) en local sur GPU
+    \item Architecture 3 serveurs : Frontend (Vercel) + Backend (Kaggle) + Stockage (HuggingFace)
+    \item Localtunnel pour exposition HTTPS de l'API
+    \item Interface premium responsive mobile-first (Next.js 16 + Tailwind CSS)
+\end{itemize}
+
+\section{Périmètre du projet}
+
+\subsection{Inclus (MVP)}
+\begin{itemize}
+    \item 3 matières : Mathématiques, Physique-Chimie, Anglais
+    \item Niveau : 2ème année Baccalauréat
+    \item Langues : français (Maths/Physique), anglais (English)
+    \item 6 fonctionnalités complètes : Chat, Correction, Cadre, Cours, Exercices, Examens
+\end{itemize}
+
+\subsection{Vision long terme}
+\begin{itemize}
+    \item Extension à toutes les matières du Bac marocain (SVT, SI, SES, Philosophie, Arabe, Français, Histoire-Géo, Éducation Islamique...)
+    \item Extension aux autres niveaux (1ère Bac, Tronc Commun, Collège)
+    \item Application mobile native (React Native / Flutter)
+    \item Mode hors-ligne avec modèles on-device
+\end{itemize}
+
+\subsection{Limites actuelles}
+\begin{itemize}
+    \item Mémoire session-based uniquement (pas de persistance entre sessions Kaggle)
+    \item Dépendance à Localtunnel pour l'exposition de l'API (URL change à chaque démarrage)
+    \item Version gratuite Kaggle : sessions limitées à 9h maximum
+    \item Pas de comptes utilisateurs ni d'authentification
+\end{itemize}
+
+\subsection*{Conclusion partielle}
+Ce chapitre a posé le cadre du projet : un constat clair du manque d'outils adaptés au curriculum marocain, une problématique bien définie, des objectifs ambitieux mais réalistes, et un périmètre maîtrisé pour le MVP avec une vision claire pour l'avenir.
+
+% ============================================================
+% CHAPITRE 2 : PLANIFICATION & CONCEPTION
+% ============================================================
+\chapter{Planification \& Conception du Projet}
+
+\section{Phases du projet}
+Le projet a été découpé en 7 phases distinctes, chacune avec des livrables précis :
+
+\begin{table}[h!]
+    \centering
+    \begin{tabular}{p{1cm} p{4cm} p{2.5cm} p{6.5cm}}
+        \toprule
+        \textbf{Phase} & \textbf{Nom} & \textbf{Durée} & \textbf{Livrable principal} \\
+        \midrule
+        1 & Extraction PDF $\rightarrow$ Markdown & 2 semaines & 24 fichiers Markdown + chunks.json \\
+        2 & RAG Knowledge Base & 1 semaine & Index ChromaDB + push HuggingFace \\
+        3 & Fine-Tuning LLM & 2 semaines & Modèle LoRA fine-tuné \\
+        4 & Backend FastAPI & 1 semaine & API REST (3 endpoints) \\
+        4.5 & Live OCR \& Session RAG & 1 semaine & OCR local GPU + mémoire session \\
+        5 & Frontend Next.js & 2 semaines & 7 pages UI + design Stitch \\
+        6 & Intégration E2E & 1 semaine & Tests frontend$\leftrightarrow$backend \\
+        7 & Feature Expansion & 1 semaine & Cadre, Cours, Exercices, Examens \\
+        \bottomrule
+    \end{tabular}
+    \caption{Phases du projet et livrables}
+\end{table}
+
+\section{Diagramme de Gantt}
+Voici la chronologie simplifiée du projet :
+
+\begin{verbatim}
+    Semaine :   1   2   3   4   5   6   7   8   9   10
+Phase 1        [=====]
+Phase 2             [===]
+Phase 3                 [======]
+Phase 4                      [===]
+Phase 4.5                      [===]
+Phase 5                           [======]
+Phase 6                                 [===]
+Phase 7                                  [===]
+\end{verbatim}
+
+\section{Choix techniques justifiés}
+
+\subsection{Pourquoi Qwen2.5-1.5B ?}
+Le choix du modèle de base s'est porté sur Qwen2.5-1.5B-Instruct pour plusieurs raisons :
+\begin{itemize}
+    \item \textbf{Taille optimale} : 1.5 milliard de paramètres — assez petit pour tenir sur un T4 15GB en 4-bit, assez grand pour des réponses de qualité
+    \item \textbf{Performances multilingues} : bon support du français et de l'anglais (langues du curriculum)
+    \item \textbf{Disponibilité} : open-source, librement accessible sur HuggingFace
+\end{itemize}
+
+\subsection{Pourquoi LoRA ?}
+La méthode LoRA (Low-Rank Adaptation) a été retenue car :
+\begin{itemize}
+    \item Seulement 0.1\% à 1\% des paramètres sont entraînés (efficace et rapide)
+    \item Évite le phénomène de \textit{catastrophic forgetting} (oubli des capacités générales du modèle)
+    \ite; Entraînement possible sur un seul GPU T4
+    \ite; Facilité de déploiement (les poids LoRA se chargent rapidement)
+\end{itemize}
+
+\subsection{Pourquoi ChromaDB ?}
+\begin{itemize}
+    \item Open-source et gratuit, pas de coût de licence
+    \item Performant pour la recherche vectorielle
+    \item Facile à déployer (pas de serveur dédié nécessaire)
+    \item Support des métadonnées pour le filtrage par matière/chapitre
+\end{itemize}
+
+\subsection{Pourquoi l'architecture 3 serveurs ?}
+Le choix de trois plateformes distinctes répond à plusieurs impératifs :
+\begin{itemize}
+    \item \textbf{Séparation des responsabilités} : chaque couche est indépendante
+    \item \textbf{Coût zéro} : toutes les plateformes offrent un free-tier généreux
+    \item \textbf{Scalabilité individuelle} : chaque composant peut évoluer séparément
+    \item \textbf{Résilience} : une panne d'un serveur ne bloque pas totalement le système
+\end{itemize}
+
+\subsection{Pourquoi Kaggle comme backend ?}
+Kaggle n'est pas conçu pour héberger un backend, mais c'est une solution de contournement originale :
+\begin{itemize}
+    \item GPU T4 gratuits (15GB VRAM) — idéal pour l'inférence de modèles
+    \item Environnement Python complet avec toutes les bibliothèques nécessaires
+    \item Pas de limitation de temps d'exécution pour un notebook (dans la limite des sessions)
+    \item Alternative gratuite à des solutions payantes (AWS, GCP, HuggingFace Inference API)
+\end{itemize}
+
+\subsection*{Conclusion partielle}
+La planification du projet suit une approche séquentielle par phases, chaque phase livrant un composant fonctionnel. Les choix techniques sont justifiés par des critères de performance, de coût et de faisabilité technique. L'architecture 3 serveurs est le pilier central de la stratégie de déploiement gratuit.
+
+% ============================================================
+% CHAPITRE 3 : PIPELINE IA
+% ============================================================
+\chapter{Pipeline IA : Collecte, Préparation \& Fine-Tuning}
+
+\section{Phase 1 — Extraction des PDFs en Markdown structuré}
+
+\subsection{Source des documents}
+Les documents officiels du 2ème Bac ont été collectés à partir de sources gouvernementales et éducatives marocaines. Chaque matière comprend environ 8 documents (cours, exercices, examens blancs), soit un total de 24 documents pour le MVP.
+
+\subsection{Pipeline d'extraction}
+Le pipeline se décompose en plusieurs étapes :
+
+\begin{enumerate}
+    \item \textbf{Extraction texte} : PyMuPDF extrait le texte brut des PDFs
+    \item \textbf{OCR des zones complexes} : Qwen2.5-VL traite les formules mathématiques, figures et tableaux
+    \item \textbf{Segmentation automatique} : Découpage par leçon, théorème et exercice
+    \item \textbf{Conversion Markdown} : Structuration avec titres, listes et blocs de code LaTeX
+    \item \textbf{Nettoyage} : Vérification manuelle assistée par IA de la qualité
+\end{enumerate}
+
+\subsection{Difficultés rencontrées}
+\begin{table}[h!]
+    \centering
+    \begin{tabular}{p{6cm} p{8cm}}
+        \toprule
+        \textbf{Difficulté} & \textbf{Solution} \\
+        \midrule
+        Aucun dataset pré-existant adapté au curriculum marocain & Création complète du dataset : collecte manuelle + distillation depuis modèles plus grands + vérification humaine \\
+        PDFs officiels mal formatés (formules, tableaux non structurés) & Utilisation de PyMuPDF + Qwen2.5-VL OCR + post-traitement manuel \\
+        Contenu incomplet dans certains PDFs & Complétion via recherches web et sources officielles supplémentaires \\
+        Volume de données insuffisant pour le fine-tuning & Utilisation de multiples agents spécialisés (un par type de contenu) pour diviser le travail, puis regroupement dans un dataset unifié \\
+        \bottomrule
+    \end{tabular}
+    \caption{Difficultés rencontrées lors de l'extraction}
+\end{table}
+
+\subsection{Résultat}
+\begin{itemize}
+    \item 24 fichiers Markdown propres et structurés
+    \item Fichiers \texttt{chunks.json} par matière (segments prêts pour l'embedding)
+    \item Push sur HuggingFace dans le dataset \texttt{Saad-Elouakate/AI-Adaptive-Learning-Index}
+\end{itemize}
+
+\label{fig:pipeline-extraction}
+\textit{Figure 1 : Pipeline d'extraction PDF $\rightarrow$ Markdown}
+\begin{verbatim}
+PDF Brut → PyMuPDF → Texte brut
+        → Qwen2.5-VL → OCR zones complexes
+                ↓
+        Segmentation (leçon/théorème/exercice)
+                ↓
+        Conversion Markdown structuré
+                ↓
+        Vérification manuelle assistée IA
+                ↓
+        chunks.json + push HuggingFace
+\end{verbatim}
+
+\section{Phase 2 — Construction de la base RAG (ChromaDB)}
+
+\subsection{Objectif}
+Construire un index sémantique robuste permettant une recherche instantanée et pertinente dans la base de connaissances.
+
+\subsection{Processus}
+\begin{enumerate}
+    \item \textbf{Embedding} : Les chunks Markdown sont transformés en vecteurs via \texttt{sentence-transformers}
+    \item \textbf{Indexation} : Stockage dans ChromaDB avec métadonnées (matière, chapitre, type de contenu)
+    \item \textbf{Optimisation} : Ajustement de la taille des chunks pour préserver les formules mathématiques
+    \item \textbf{Chevauchement} : Overlap entre chunks pour éviter la perte de contexte aux frontières
+\end{enumerate}
+
+\subsection{Structure de la base}
+\begin{itemize}
+    \item 3 collections ChromaDB : \texttt{maths\_2bac}, \texttt{physics\_2bac}, \texttt{english\_2bac}
+    \item Métadonnées par chunk : \texttt{\{subject, chapter, type, source\_pdf\}}
+    \item Index complet disponible sur HuggingFace
+\end{itemize}
+
+\subsection{Difficultés rencontrées}
+\begin{table}[h!]
+    \centering
+    \begin{tabular}{p{6cm} p{8cm}}
+        \toprule
+        \textbf{Difficulté} & \textbf{Solution} \\
+        \midrule
+        Taille de chunk difficile à optimiser & Tests empiriques avec validation sur des requêtes types \\
+        Chunks de formules perdaient leur sens après embedding & Segmentation par blocs sémantiques (un théorème = un chunk) \\
+        \bottomrule
+    \end{tabular}
+    \caption{Difficultés rencontrées lors de la construction RAG}
+\end{table}
+
+\subsection{Hébergement}
+L'index ChromaDB complet est pusher sur HuggingFace dans le dataset \texttt{Saad-Elouakate/AI-Adaptive-Learning-Index}, permettant un téléchargement automatique au démarrage du serveur Kaggle via \texttt{snapshot\_download}.
+
+\section{Phase 3 — Fine-Tuning du LLM}
+
+\subsection{Modèle de base}
+Le modèle choisi est \textbf{Qwen2.5-1.5B-Instruct} de la famille Qwen (Alibaba Cloud), un modèle instruct performant avec un bon ratio qualité/taille.
+
+\subsection{Méthode LoRA}
+LoRA (Low-Rank Adaptation) est une technique de fine-tuning paramétrique efficace :
+\begin{itemize}
+    \item \textbf{Rang} : 32
+    \item \textbf{Alpha} : 64
+    \item \textbf{Modules ciblés} : \texttt{q\_proj}, \texttt{k\_proj}, \texttt{v\_proj}, \texttt{o\_proj}
+    \item \textbf{Taux d'entraînement} : seulement 0.3\% des paramètres totaux
+\end{itemize}
+
+\subsection{Création du dataset Q&A}
+Le dataset d'entraînement a été créé \textit{from scratch} :
+\begin{enumerate}
+    \item \textbf{Collecte} : Pas de dataset pré-existant pour le style pédagogique marocain
+    \item \textbf{Génération} : Création manuelle de paires Q\&A + distillation depuis des modèles plus grands (Qwen2.5-7B, 14B)
+    \item \textbf{Format} : Question élève en français/anglais $\rightarrow$ réponse pas-à-pas avec démonstration complète
+    \item \textbf{Vérification} : Validation humaine de la qualité et de la conformité au programme
+\end{enumerate}
+
+\subsection{Paramètres d'entraînement}
+\begin{itemize}
+    \item 3 époques
+    \item Learning rate : 2e-4
+    \item Warmup steps : 10\% du total
+    \item Gradient accumulation pour adapter le batch size à la mémoire T4
+\end{itemize}
+
+\subsection{Difficultés rencontrées}
+\begin{table}[h!]
+    \centering
+    \begin{tabular}{p{6cm} p{8cm}}
+        \toprule
+        \textbf{Difficulté} & \textbf{Solution} \\
+        \midrule
+        Pas de GPU local disponible & Utilisation de Kaggle (T4 gratuit) \\
+        OOM sur T4 15GB en full precision & Quantification 4-bit (bitsandbytes) : modèle de ~3GB à ~900MB \\
+        Modèle répond dans un style trop généraliste & Fine-tuning LoRA sur dataset marocain spécifique avec terminologie exacte \\
+        Loss stagnante pendant l'entraînement & Ajustement du learning rate, ajout de warmup steps, correction du dataset \\
+        Deux modèles (texte + vision) ne tiennent pas sur un seul GPU & Dual T4 : un modèle par GPU, quantification 4-bit pour les deux \\
+        \bottomrule
+    \end{tabular}
+    \caption{Difficultés rencontrées lors du fine-tuning}
+\end{table}
+
+\subsection{Résultat}
+Le modèle fine-tuné \texttt{Saad-Elouakate/rafiki-qwen-2.5-finetune} est disponible sur HuggingFace. Il répond avec :
+\begin{itemize}
+    \item La terminologie exacte du programme marocain
+    \item Des démonstrations complètes pas-à-pas
+    \item Des formules LaTeX correctement formatées
+    \item Un style pédagogique adapté (reformulation $\rightarrow$ théorie $\rightarrow$ démonstration $\rightarrow$ application $\rightarrow$ conclusion)
+\end{itemize}
+
+\section{Phase 4 — Développement du Backend FastAPI}
+
+\subsection{Architecture}
+Le backend est développé avec \textbf{FastAPI} et \textbf{Uvicorn}, déployé initialement sur HuggingFace Spaces puis migré vers Kaggle pour des raisons de coût.
+
+\subsection{Endpoints (version initiale)}
+\begin{itemize}
+    \item \texttt{POST /api/ask} : Question $\rightarrow$ RAG $\rightarrow$ LLM $\rightarrow$ Réponse
+    \item \texttt{POST /api/correct} : Exercice $\rightarrow$ OCR $\rightarrow$ LLM $\rightarrow$ Correction
+    \item \texttt{POST /api/upload} : PDF/Image $\rightarrow$ OCR $\rightarrow$ Texte $\rightarrow$ Session ChromaDB
+\end{itemize}
+
+\subsection{Mémoire de conversation}
+Implémentée via un dictionnaire in-memory :
+\begin{itemize}
+    \item Structure : \texttt{\{session\_id: [{role, content}]\}}
+    \item Limite : 20 messages par session
+    \item Capacité : 500 sessions concurrentes maximum
+    \item Éviction : LRU (Least Recently Used) quand le seuil est dépassé
+\end{itemize}
+
+\subsection{Difficultés rencontrées}
+\begin{table}[h!]
+    \centering
+    \begin{tabular}{p{6cm} p{8cm}}
+        \toprule
+        \textbf{Difficulté} & \textbf{Solution} \\
+        \midrule
+        HuggingFace Inference API payante après quota & Migration vers Kaggle avec modèles locaux — coût zéro \\
+        Pas de serveur/GPU local disponible & Utilisation de Kaggle Notebooks comme serveur backend (solution de contournement originale) \\
+        \bottomrule
+    \end{tabular}
+    \caption{Difficultés rencontrées lors du développement backend}
+\end{table}
+
+\section{Phase 4.5 — OCR Temps Réel \& Session RAG}
+
+\subsection{Modèle Vision}
+Le modèle \textbf{Qwen2.5-VL-3B-Instruct} est utilisé pour l'OCR temps réel :
+\begin{itemize}
+    \item Exécuté en local sur GPU 1 (T4)
+    \item Quantifié en 4-bit pour tenir dans 15GB VRAM
+    \item Capacité : extraction de texte manuscrit et imprimé, compréhension de formules et tableaux
+\end{itemize}
+
+\subsection{Pipeline OCR}
+\begin{enumerate}
+    \item Réception du fichier (PDF ou image)
+    \item Conversion du PDF en images (PyMuPDF)
+    \item Envoi au Vision LLM pour extraction de texte
+    \item Stockage du texte extrait dans ChromaDB éphémère de session
+\end{enumerate}
+
+\subsection{Session RAG}
+Les documents OCRisés sont fusionnés temporairement avec la base de connaissances globale pour la session en cours, permettant de questionner à la fois le programme officiel et ses propres notes.
+
+\section{Phase 5 — Développement du Frontend Next.js}
+
+\subsection{Technologie}
+\begin{itemize}
+    \item Next.js 16 avec App Router
+    \item JavaScript (ES2022+)
+    \item Tailwind CSS pour le design responsive
+    \item Templates premium Stitch pour l'esthétique
+\end{itemize}
+
+\subsection{Pages développées}
+\begin{table}[h!]
+    \centering
+    \begin{tabular}{p{3cm} p{5cm} p{6cm}}
+        \toprule
+        \textbf{Page} & \textbf{Route} & \textbf{Fonctionnalité} \\
+        \midrule
+        Accueil & \texttt{/} & Landing page avec présentation \\
+        Chat Q\&A & \texttt{/chat} & Chat avec mémoire, paramètre \texttt{?q=} pour auto-submit \\
+        Correction & \texttt{/correction} & Upload PDF/image + correction avec rendu LaTeX \\
+        Cadre & \texttt{/cadre} & Arbre interactif du Cadre Référenciel avec recherche \\
+        Cours & \texttt{/course} & Visualisation cours avec navigation chapitres \\
+        Exercices & \texttt{/exercise} & Génération d'exercices par matière/chapitre \\
+        Examens & \texttt{/exam-gen} & Génération d'examens basée sur sujets Bac réels \\
+        \bottomrule
+    \end{tabular}
+    \caption{Pages du frontend}
+\end{table}
+
+\subsection{Difficultés rencontrées}
+\begin{table}[h!]
+    \centering
+    \begin{tabular}{p{6cm} p{8cm}}
+        \toprule
+        \textbf{Difficulté} & \textbf{Solution} \\
+        \midrule
+        Rendu LaTeX brut dans les corrections & Migration vers ReactMarkdown + remark-math + rehype-katex + KaTeX CSS \\
+        useSearchParams bloque le rendu (Next.js 16) & Wrapping du composant dans \texttt{<Suspense>} \\
+        Sidebar avec liens obsolètes & Mise à jour : « Resume Generation » $\rightarrow$ « Course Notes » \\
+        \bottomrule
+    \end{tabular}
+    \caption{Difficultés rencontrées lors du développement frontend}
+\end{table}
+
+\subsection*{Conclusion partielle}
+Ce chapitre a détaillé l'ensemble du pipeline IA, de l'extraction des documents PDF bruts jusqu'au déploiement du frontend. Chaque phase a présenté des défis spécifiques (absence de dataset, limitations GPU, formatage des données) qui ont été résolus par des approches adaptées. La combinaison RAG + fine-tuning + OCR constitue le cœur de la valeur ajoutée du projet.
+
+% ============================================================
+% CHAPITRE 4 : FONCTIONNALITÉS AVANCÉES (PHASE 7)
+% ============================================================
+\chapter{Développement des Fonctionnalités Avancées}
+
+La Phase 7 a consisté à transformer les placeholders UI en fonctionnalités complètes, opérationnelles et intégrées.
+
+\section{Cadre Référenciel (الإطار المرجعي)}
+
+\subsection{Description}
+Le Cadre Référenciel est une représentation structurée des objectifs pédagogiques officiels du 2ème Bac, permettant aux élèves de visualiser l'ensemble du programme et de naviguer par objectifs d'apprentissage.
+
+\subsection{Implémentation}
+\begin{itemize}
+    \item \textbf{Sources} : 3 fichiers \texttt{.md} dans \texttt{Document-Data-Set/cadre/}
+    \item \textbf{Backend} : \texttt{cadre\_service.py} parse les fichiers en JSON structuré
+    \begin{itemize}
+        \item Maths : arbre d'objectifs (domaine $\rightarrow$ sous-domaine $\rightarrow$ objectif avec code type \texttt{1.1.1})
+        \item Physique/Anglais : vue document avec sections numérotées
+    \end{itemize}
+    \item \textbf{API} : \texttt{GET /api/cadre} (liste matières), \texttt{GET /api/cadre/\{subject\}} (arbre détaillé)
+    \item \textbf{Frontend} : Arbre expansible avec recherche en direct + bouton « Ask AI » par objectif
+\end{itemize}
+
+\subsection{Difficulté rencontrée}
+Les fichiers du cadre n'ont pas une structure uniforme entre matières — un parsing spécifique par matière a été nécessaire.
+
+\section{Course Notes Viewer}
+
+\subsection{Description}
+Visualiseur de cours officiels au format Markdown avec rendu LaTeX des formules mathématiques et navigation par chapitres.
+
+\subsection{Implémentation}
+\begin{itemize}
+    \item \textbf{Sources} : 3 fichiers \texttt{.md} dans \texttt{Document-Data-Set/courses/} (maths 47KB, physique 27KB, anglais 48KB)
+    \item \textbf{Backend} : \texttt{course\_service.py} lit les fichiers et extrait les titres \texttt{##} comme table des matières
+    \item \textbf{API} : \texttt{GET /api/courses}, \texttt{GET /api/course/\{subject\}}
+    \item \textbf{Frontend} :
+    \begin{itemize}
+        \item Barre latérale des chapitres (scroll vers la section ciblée)
+        \item Rendu markdown + LaTeX via KaTeX (\texttt{react-markdown} + \texttt{remark-math} + \texttt{rehype-katex})
+    \end{itemize}
+\end{itemize}
+
+\subsection{Particularité}
+Contrairement aux autres fonctionnalités, le Course Notes Viewer n'utilise pas d'IA. Il s'agit d'un visualiseur de fichiers statiques, garantissant un affichage instantané et fiable.
+
+\section{Exercise Generation}
+
+\subsection{Description}
+Génération automatique d'exercices par intelligence artificielle, adaptés à la matière et au chapitre sélectionnés, avec solution complète pas-à-pas.
+
+\subsection{Implémentation}
+\begin{itemize}
+    \item \textbf{Backend} : \texttt{exercise\_service.py}
+    \begin{itemize}
+        \item \texttt{get\_topics()} : extraction automatique des titres \texttt{##} des cours
+        \item \texttt{generate\_exercise()} : RAG + LLM avec prompt dédié
+    \end{itemize}
+    \item \textbf{Format de réponse} : Exercice + solution séparée par le marqueur \texttt{---SOLUTION---}
+    \item \textbf{API} : \texttt{GET /api/generate/topics}, \texttt{POST /api/generate/exercise}
+    \item \textbf{Frontend} : Onglets matières, dropdown des chapitres, bouton générer, solution pliable (Afficher/Masquer)
+\end{itemize}
+
+\section{Exam Generation}
+
+\subsection{Description}
+Génération d'examens complets basée sur des sujets réels du Bac utilisés comme références de format (few-shot learning).
+
+\subsection{Implémentation}
+\begin{itemize}
+    \item \textbf{Sources} : 7 fichiers JSON d'examens réels (3 Maths, 2 Physique, 2 Anglais) dans \texttt{Document-Data-Set/Fine-Tunning/}
+    \item \textbf{Backend} : \texttt{exam\_service.py}
+    \begin{itemize}
+        \item Chargement des JSON comme exemples few-shot
+        \item Envoi au LLM avec RAG context + format de référence
+        \item Parsing du JSON généré via regex + validation
+    \end{itemize}
+    \item \textbf{API} : \texttt{POST /api/generate/exam}
+    \item \textbf{Frontend} : Cartes Q/Corr pliables, sujet optionnel (défaut : « Général »)
+\end{itemize}
+
+\section{Améliorations et Corrections}
+
+\subsection{RAG Subject Mapping Fix}
+\begin{itemize}
+    \item \textbf{Problème} : \texttt{exercise\_service} et \texttt{exam\_service} passaient les clés sujets (\texttt{"maths"}) à \texttt{retrieve\_context()}, mais ChromaDB attend les noms d'affichage (\texttt{"Mathématiques"})
+    \item \textbf{Impact} : RAG retournait des résultats vides silencieusement
+    \item \textbf{Solution} : Passage de \texttt{subject\_display} au lieu de \texttt{subject\_key}
+\end{itemize}
+
+\subsection{Correction Page — Rendu LaTeX}
+\begin{itemize}
+    \item \textbf{Problème} : Les réponses de correction contenaient du LaTeX brut (\texttt{\$\$...\$\$}, \texttt{\textbackslash frac\{\}}) affiché comme texte
+    \item \textbf{Solution} : Adoption de ReactMarkdown + remarkMath + rehypeKatex, aligné sur le rendu des autres pages
+\end{itemize}
+
+\subsection{Mémoire de conversation}
+\begin{itemize}
+    \item Ajout d'un dictionnaire in-memory \texttt{\{session\_id: [{role, content}]\}} dans \texttt{rag\_service.py}
+    \item Limite : 20 messages/session, 500 sessions (LRU eviction)
+    \item Le frontend persist le \texttt{session\_id} et l'envoie à chaque requête
+\end{itemize}
+
+\subsection*{Conclusion partielle}
+La Phase 7 a livré l'ensemble des fonctionnalités manquantes, portant le projet à 6 fonctionnalités complètes sur 7 prévues. Les corrections apportées (mapping RAG, rendu LaTeX) ont résolu des bugs bloquants identifiés lors des tests.
+
+% ============================================================
+% CHAPITRE 5 : ARCHITECTURE TECHNIQUE
+% ============================================================
+\chapter{Architecture Technique Détaillée}
+
+\section{Architecture 3 Serveurs}
+L'architecture du projet repose sur trois plateformes distinctes fonctionnant intégralement sur des offres gratuites :
+
+\begin{verbatim}
++------------------------------------------------------------------+
+|                    ARCHITECTURE 3 SERVEURS                        |
++------------------------------------------------------------------+
+                                                                     
+    ÉLÈVE (Navigateur)                                              
+         |                                                          
+         | HTTPS                                                    
+         v                                                          
++----------------------------------+                                
+|   VERCEL - Frontend              |                                
+|   Next.js 16 + Tailwind CSS      |                                
+|   Pages: /chat, /correction,     |                                
+|          /cadre, /course,         |                                
+|          /exercise, /exam-gen     |                                
++----------+-----------------------+                                
+           |                                                       
+           | POST /api/ask, /api/upload, /api/correct              
+           | GET /api/cadre, /api/courses, /api/course/{subject}   
+           | GET /api/generate/topics                              
+           | POST /api/generate/exercise, /api/generate/exam       
+           v                                                       
++----------------------------------+                                
+|   KAGGLE - Backend & IA          |                                
+|   FastAPI + Python 3.11          |                                
+|   Dual T4 GPU (15GB chacun)      |                                
+|   GPU 0: Texte (rafiki-qwen)     |                                
+|   GPU 1: Vision (Qwen2.5-VL)     |                                
+|   + Localtunnel (URL publique)    |                                
++----------+-----------------------+                                
+           |                                                       
+           | Modèles et données                                    
+           v                                                       
++----------------------------------+                                
+|   HUGGINGFACE - Stockage         |                                
+|   Modèle texte: rafiki-qwen      |                                
+|   Modèle vision: Qwen2.5-VL-3B   |                                
+|   Dataset: ChromaDB Index        |                                
+|   Dataset: Q&A fine-tuning       |                                
++----------------------------------+                                
+\end{verbatim}
+
+\section{Frontend (Vercel — Next.js 16)}
+
+\subsection{Technologies}
+\begin{itemize}
+    \item \textbf{Framework} : Next.js 16 avec App Router
+    \item \textbf{Langage} : JavaScript (ES2022+)
+    \item \textbf{Styling} : Tailwind CSS + templates premium Stitch
+    \item \textbf{Rendu mathématique} : KaTeX via react-markdown + remark-math + rehype-katex
+    \item \textbf{Déploiement} : Vercel (free tier)
+\end{itemize}
+
+\subsection{Pages et routes}
+Le frontend expose 7 pages fonctionnelles :
+\begin{enumerate}
+    \item \texttt{/} : Landing page avec présentation du projet
+    \item \texttt{/chat} : Chat Q\&A avec mémoire de conversation
+    \item \texttt{/correction} : Upload et correction d'exercices
+    \item \texttt{/cadre} : Arbre du Cadre Référenciel
+    \item \texttt{/course} : Visualisation des cours
+    \item \texttt{/exercise} : Génération d'exercices
+    \item \texttt{/exam-gen} : Génération d'examens
+\end{enumerate}
+
+\subsection{Communication avec le backend}
+Le frontend communique avec le backend via des appels \texttt{fetch()} REST utilisant la variable d'environnement \texttt{NEXT\_PUBLIC\_API\_URL}.
+
+\section{Backend \& IA (Kaggle — FastAPI)}
+
+\subsection{Environnement d'exécution}
+\begin{itemize}
+    \item \textbf{Plateforme} : Kaggle Notebooks
+    \item \textbf{GPU} : Dual T4 NVIDIA (15GB VRAM chacun)
+    \item \textbf{Python} : 3.11
+    \item \textbf{Framework API} : FastAPI + Uvicorn
+    \item \textbf{Exposition} : Localtunnel (URL HTTPS publique)
+\end{itemize}
+
+\subsection{Répartition des modèles sur les GPUs}
+
+\begin{table}[h!]
+    \centering
+    \begin{tabular}{p{2cm} p{4.5cm} p{4.5cm} p{3cm}}
+        \toprule
+        \textbf{GPU} & \textbf{Modèle} & \textbf{Rôle} & \textbf{Quantification} \\
+        \midrule
+        GPU 0 & \texttt{rafiki-qwen-2.5-finetune} & Génération de texte (Q\&A, correction, exercices, examens) & 4-bit \\
+        GPU 1 & \texttt{Qwen2.5-VL-3B-Instruct} & OCR temps réel (extraction de texte depuis images/PDFs) & 4-bit \\
+        \bottomrule
+    \end{tabular}
+    \caption{Répartition des modèles sur les GPUs}
+\end{table}
+
+\subsection{Endpoints API (8 endpoints)}
+
+\begin{longtable}{p{4cm} p{3cm} p{7cm}}
+    \toprule
+    \textbf{Endpoint} & \textbf{Méthode} & \textbf{Description} \\
+    \midrule
+    \endhead
+    \texttt{/api/upload} & POST & Upload PDF/Image $\rightarrow$ OCR $\rightarrow$ texte $\rightarrow$ session \\
+    \texttt{/api/ask} & POST & Question $\rightarrow$ RAG $\rightarrow$ LLM $\rightarrow$ réponse \\
+    \texttt{/api/correct} & POST & Upload $\rightarrow$ OCR $\rightarrow$ LLM $\rightarrow$ correction \\
+    \texttt{/api/cadre} & GET & Liste des matières du cadre référenciel \\
+    \texttt{/api/cadre/\{subject\}} & GET & Arbre d'objectifs détaillé \\
+    \texttt{/api/courses} & GET & Liste des cours + chapitres \\
+    \texttt{/api/course/\{subject\}} & GET & Contenu complet du cours en markdown \\
+    \texttt{/api/generate/topics} & GET & Liste des chapitres pour une matière \\
+    \texttt{/api/generate/exercise} & POST & Génération d'un exercice + solution \\
+    \texttt{/api/generate/exam} & POST & Génération d'un examen complet \\
+    \bottomrule
+    \caption{Endpoints API du backend}
+\end{longtable}
+
+\section{RAG — Retrieval-Augmented Generation}
+
+\subsection{Base de connaissances pré-construite}
+\begin{itemize}
+    \item ChromaDB indexée à partir de l'ensemble des PDFs du 2ème Bac
+    \item 3 collections : \texttt{maths\_2bac}, \texttt{physics\_2bac}, \texttt{english\_2bac}
+    \item Chunks avec métadonnées riches (matière, chapitre, type de contenu)
+    \item Index téléchargeable depuis HuggingFace
+\end{itemize}
+
+\subsection{Session RAG temporaire}
+\begin{itemize}
+    \item ChromaDB in-memory créée à la volée pour chaque session
+    \item Stocke les documents uploadés par l'élève (OCRisés)
+    \item Fusionnée avec la base globale pour les requêtes
+    \item Disparaît au redémarrage du serveur
+\end{itemize}
+
+\subsection{Processus d'une requête typique}
+\begin{enumerate}
+    \item L'élève pose une question dans le chat
+    \item La question est transformée en vecteur (embedding)
+    \item Recherche des chunks les plus similaires dans ChromaDB
+    \item Construction du prompt : contexte + question + historique
+    \item Envoi au LLM fine-tuné sur GPU 0
+    \item Génération de la réponse pas-à-pas
+\end{enumerate}
+
+\section{Stack Technologique Complète}
+
+\begin{longtable}{p{3.5cm} p{4cm} p{2cm} p{4.5cm}}
+    \toprule
+    \textbf{Composant} & \textbf{Technologie} & \textbf{Version} & \textbf{Rôle} \\
+    \midrule
+    \endhead
+    Frontend & Next.js & 16 App Router & Interface utilisateur \\
+    Styling & Tailwind CSS & 4 & Design responsive \\
+    Backend API & FastAPI & 0.115 & Orchestrateur REST \\
+    Runtime IA & Python & 3.11 & Exécution modèles \\
+    LLM Texte & Qwen2.5-1.5B-Instruct (fine-tuné) & 4-bit & Génération réponses \\
+    LLM Vision & Qwen2.5-VL-3B-Instruct & 4-bit & OCR temps réel \\
+    Base vectorielle & ChromaDB & 0.6 & Base de connaissances \\
+    Fine-tuning & LoRA + PEFT & - & Adaptation modèle \\
+    Quantification & bitsandbytes & 0.45 & Compression GPU \\
+    Tunnel HTTPS & Localtunnel & - & Exposition API \\
+    Frontend Host & Vercel & Free Tier & Hébergement web \\
+    Backend Host & Kaggle & Free Dual T4 & Calcul GPU \\
+    Stockage & HuggingFace Hub & - & Distribution \\
+    Rendu Markdown & react-markdown + remark-math & - & Affichage cours \\
+    Rendu LaTeX & KaTeX + rehype-katex & - & Formules maths \\
+    OCR PDF & PyMuPDF & 1.25 & Extraction PDF \\
+    \bottomrule
+    \caption{Stack technologique complète}
+\end{longtable}
+
+\subsection*{Conclusion partielle}
+L'architecture 3 serveurs est le pilier technique du projet. Elle démontre qu'il est possible de construire une plateforme IA complète et performante avec un budget zéro. La répartition des modèles sur deux GPUs distincts et l'approche RAG (globale + session) constituent les innovations techniques majeures.
+
+% ============================================================
+% CHAPITRE 6 : DÉPLOIEMENT
+% ============================================================
+\chapter{Déploiement \& Mise en Œuvre}
+
+\section{Déploiement Backend (Kaggle)}
+Le backend est déployé sur un notebook Kaggle en trois cellules :
+
+\subsection{Cell 1 — Installation}
+\begin{lstlisting}
+# Clonage du repository
+!git clone https://github.com/[user]/M3allem.git
+
+# Installation des dépendances
+!pip install transformers bitsandbytes torch accelerate peft
+!pip install fastapi uvicorn pydantic python-multipart
+!pip install chromadb sentence-transformers
+!pip install PyMuPDF pillow qwen-vl-utils
+!pip install localtunnel requests
+\end{lstlisting}
+
+\subsection{Cell 2 — Surcharge GPU}
+Les fichiers suivants sont surchargés pour la quantification 4-bit dual-GPU :
+\begin{itemize}
+    \item \texttt{llm\_service.py} : Chargement du modèle texte sur GPU 0 avec fonction \texttt{generate\_content()}
+    \item \texttt{extraction\_service.py} : Chargement du modèle vision sur GPU 1
+\end{itemize}
+
+\subsection{Cell 3 — Démarrage}
+\begin{lstlisting}
+!python -m uvicorn src.phase4_backend.main:app --host 0.0.0.0 --port 8000 &
+!npx localtunnel --port 8000
+\end{lstlisting}
+
+\subsection{Temps de démarrage}
+Le chargement complet des modèles prend environ 60 secondes (poids des modèles 4-bit).
+
+\section{Déploiement Frontend (Vercel)}
+\begin{enumerate}
+    \item Configuration de la variable d'environnement \texttt{NEXT\_PUBLIC\_API\_URL} avec l'URL Localtunnel
+    \item Build et déploiement via Vercel CLI ou intégration GitHub
+    \item Le site est accessible publiquement en HTTPS
+\end{enumerate}
+
+\section{Schéma de communication complet}
+\begin{verbatim}
+Élève -> https://rafiki.vercel.app/chat
+  -> Frontend Next.js
+    -> POST https://xxxx.loca.lt/api/ask 
+       {question, subject, session_id}
+      -> FastAPI (Kaggle)
+        -> RAG Retrieval ChromaDB
+        -> Construction du prompt
+           (contexte + question + historique)
+        -> Inférence LLM (GPU 0)
+        -> Formatage de la réponse
+    <- JSON {answer, sources, session_id}
+  -> Affichage UI avec ReactMarkdown + KaTeX
+\end{verbatim}
+
+\section{Contraintes et Limitations du Déploiement}
+\begin{table}[h!]
+    \centering
+    \begin{tabular}{p{5cm} p{9cm}}
+        \toprule
+        \textbf{Contrainte} & \textbf{Impact} \\
+        \midrule
+        Kaggle free tier & Sessions limitées à 9h, GPU non garantis, pas de persistance \\
+        Localtunnel & Nouvelle URL à chaque démarrage, latence réseau, nécessite déblocage manuel \\
+        Quantification 4-bit & Légère perte de qualité par rapport au modèle full precision \\
+        Pas de comptes utilisateurs & Aucune authentification ni historique persistant \\
+        Mémoire session & Perdue au redémarrage du serveur Kaggle \\
+        Latence pipeline & 15 à 45 secondes pour le cycle complet OCR + RAG + LLM \\
+        \bottomrule
+    \end{tabular}
+    \caption{Contraintes et limitations du déploiement}
+\end{table}
+
+\subsection*{Conclusion partielle}
+Le déploiement repose sur des solutions de contournement originales (Kaggle comme serveur backend, Localtunnel pour l'exposition) qui fonctionnent parfaitement pour un MVP mais nécessiteront une évolution vers des solutions plus robustes pour une mise en production.
+
+% ============================================================
+% CHAPITRE 7 : TESTS & VALIDATION
+% ============================================================
+\chapter{Tests \& Validation}
+
+\section{Tests unitaires}
+\begin{itemize}
+    \item \textbf{API} : Vérification que chaque endpoint retourne le code HTTP et le format JSON attendus
+    \item \textbf{Extraction} : Validation du pipeline PDF $\rightarrow$ Markdown $\rightarrow$ chunks
+    \item \textbf{RAG} : Test de pertinence des chunks retournés pour des requêtes types
+    \item \textbf{Rendu LaTeX} : Vérification de l'affichage correct des formules
+\end{itemize}
+
+\section{Tests d'intégration}
+\begin{itemize}
+    \item Communication frontend $\leftrightarrow$ backend via Localtunnel
+    \item Pipeline complet : Upload $\rightarrow$ OCR $\rightarrow$ RAG $\rightarrow$ LLM $\rightarrow$ Réponse affichée
+    \item Gestion des erreurs : modèle non chargé, timeout, fichier invalide
+\end{itemize}
+
+\section{Validation pédagogique}
+\begin{itemize}
+    \item Comparaison des réponses générées avec les corrigés officiels du Bac
+    \item Vérification de la terminologie employée (conformité au programme)
+    \item Évaluation de la clarté pédagogique des explications
+\end{itemize}
+
+\section{Résultats des tests}
+\begin{table}[h!]
+    \centering
+    \begin{tabular}{p{5cm} p{5cm} p{4cm}}
+        \toprule
+        \textbf{Composant} & \textbf{Statut} & \textbf{Notes} \\
+        \midrule
+        Phases 1-5 (tests unitaires) & $\checkmark$ Validé & Tous les tests passent \\
+        Phase 7 (nouvelles features) & $\checkmark$ Validé & Cadre, Cours, Exercices, Examens \\
+        Phase 6 (intégration E2E) & $\bigcirc$ Partiel & À finaliser \\
+        \bottomrule
+    \end{tabular}
+    \caption{Résultats des tests}
+\end{table}
+
+\subsection{Known issues}
+\begin{itemize}
+    \item Latence élevée sur le pipeline complet (15-45s)
+    \item Localtunnel instable (déconnexions aléatoires)
+    \item Pas de fallback élégant en cas d'erreur GPU
+\end{itemize}
+
+\subsection*{Conclusion partielle}
+Les tests valident le fonctionnement de l'ensemble des fonctionnalités. Les principaux problèmes identifiés concernent la latence et la stabilité du déploiement, qui sont des limitations acceptables pour un MVP.
+
+% ============================================================
+% CHAPITRE 8 : DIFFICULTÉS RENCONTRÉES
+% ============================================================
+\chapter{Difficultés Rencontrées \& Solutions}
+
+\section{Création du dataset}
+\begin{longtable}{p{6.5cm} p{7.5cm}}
+    \toprule
+    \textbf{Difficulté} & \textbf{Solution} \\
+    \midgoal
+    \endhead
+    Aucun dataset pré-existant pour le curriculum marocain & Création manuelle de paires Q\&A + distillation depuis des modèles plus grands (Qwen2.5-7B/14B) \\
+    PDFs officiels mal formatés (formules, tableaux non structurés) & PyMuPDF pour le texte + Qwen2.5-VL pour l'OCR des zones complexes + post-traitement manuel \\
+    Chunks difficile à optimiser (taille) & Segmentation sémantique par bloc logique (un théorème = un chunk) plutôt que par taille fixe \\
+    Contenu incomplet dans certains PDFs & Complétion via recherches web et sources officielles supplémentaires \\
+    Volume de données insuffisant & Utilisation de multiples agents spécialisés pour diviser le travail, puis regroupement unifié \\
+    \bottomrule
+    \caption{Difficultés de création du dataset}
+\end{longtable}
+
+\section{Modèle \& Fine-Tuning}
+\begin{longtable}{p{6.5cm} p{7.5cm}}
+    \toprule
+    \textbf{Difficulté} & \textbf{Solution} \\
+    \midrule
+    \endhead
+    Pas de GPU local disponible & Utilisation de Kaggle (GPU T4 gratuit) \\
+    OOM (Out of Memory) sur T4 15GB en full precision & Quantification 4-bit avec bitsandbytes : modèle de ~3GB à ~900MB \\
+    Modèle répond dans un style trop généraliste & Fine-tuning LoRA sur dataset marocain spécifique avec terminologie exacte \\
+    Loss stagnante pendant l'entraînement & Ajustement du learning rate (2e-4), ajout de warmup steps, correction du dataset \\
+    Deux modèles ne tiennent pas sur un seul GPU & Dual T4 : un modèle par GPU, quantification 4-bit pour les deux \\
+    \bottomrule
+    \caption{Difficultés de fine-tuning}
+\end{longtable}
+
+\section{Déploiement \& Infrastructure}
+\begin{longtable}{p{6.5cm} p{7.5cm}}
+    \toprule
+    \textbf{Difficulté} & \textbf{Solution} \\
+    \midrule
+    \endhead
+    HuggingFace Inference API coûteuse (payante après quota) & Migration vers Kaggle avec modèles locaux : coût zéro \\
+    Kaggle pas conçu pour servir un backend & Détournement : le notebook tourne en continu avec FastAPI + Localtunnel \\
+    Localtunnel change d'URL à chaque démarrage & Mise à jour manuelle du fichier \texttt{.env} du frontend \\
+    Sessions Kaggle limitées à 9h & Redémarrage programmé, documentation claire pour le re-déploiement \\
+    Pas de persistance des données & Mémoire session en RAM (solution temporaire), évolution vers Supabase prévue \\
+    \bottomrule
+    \caption{Difficultés de déploiement}
+\end{longtable}
+
+\section{Intégration Frontend}
+\begin{longtable}{p{6.5cm} p{7.5cm}}
+    \toprule
+    \textbf{Difficulté} & \textbf{Solution} \\
+    \midrule
+    \endhead
+    LaTeX brut affiché au lieu des formules dans les corrections & Migration vers ReactMarkdown + remark-math + rehype-katex + KaTeX CSS \\
+    \texttt{useSearchParams} bloque le rendu (Next.js 16) & Wrapping du composant dans \texttt{<Suspense>} \\
+    RAG retourne des résultats vides pour les exercices/examens & Correction du mapping : clé sujet (\texttt{"maths"}) $\rightarrow$ nom d'affichage (\texttt{"Mathématiques"}) \\
+    Sidebar avec liens obsolètes (« Resume Generation ») & Mise à jour du libellé et de la route \\
+    \bottomrule
+    \caption{Difficultés d'intégration frontend}
+\end{longtable}
+
+\subsection*{Conclusion partielle}
+Chaque difficulté rencontrée a été une opportunité d'apprentissage. Les solutions adoptées, bien que parfois non conventionnelles (Kaggle comme serveur backend, Localtunnel), ont permis de maintenir l'objectif de coût zéro tout en livrant un produit fonctionnel.
+
+% ============================================================
+% CHAPITRE 9 : CONCEPTS CLÉS APPRIS
+% ============================================================
+\chapter{Concepts Clés Appris}
+
+Ce chapitre récapitule les principaux concepts techniques mobilisés dans le cadre du projet :
+
+\begin{enumerate}[label=\textbf{\arabic{.}}]
+    \item \textbf{RAG (Retrieval-Augmented Generation)} : Combinaison de recherche vectorielle et de génération LLM pour ancrer les réponses dans une base de connaissances spécifique, réduisant les hallucinations.
+    
+    \item \textbf{Fine-Tuning (LoRA)} : Adaptation d'un modèle pré-entraîné sur un domaine spécifique en n'entraînant qu'un faible pourcentage des paramètres via des matrices de bas rang.
+    
+    \item \textbf{Quantification 4-bit} : Compression des poids d'un modèle de 32-bit à 4-bit (bitsandbytes), réduisant l'empreinte mémoire de ~75\% avec une perte de qualité minimale.
+    
+    \item \textbf{Embeddings vectoriels} : Représentation numérique du sens d'un texte sous forme de vecteurs permettant la recherche sémantique par similarité cosinus.
+    
+    \item \textbf{ChromaDB} : Base de données vectorielle open-source offrant stockage et requêtage d'embeddings avec support des métadonnées.
+    
+    \item \textbf{OCR (Optical Character Recognition)} : Extraction de texte à partir d'images ou de PDFs, utilisée ici pour les documents manuscrits et imprimés.
+    
+    \item \textbf{Vision LLM} : Modèle de langage capable de comprendre le contenu visuel (images, schémas, formules) et de le décrire textuellement.
+    
+    \item \textbf{FastAPI} : Framework Python moderne pour la construction d'API REST asynchrones avec validation automatique des données via Pydantic.
+    
+    \item \textbf{Next.js App Router} : Framework React avec routage basé sur le système de fichiers, support du rendu serveur (SSR) et des composants serveur.
+    
+    \item \textbf{Localtunnel} : Outil d'exposition d'un serveur local à Internet via une URL HTTPS publique, utilisé comme alternative à un déploiement cloud traditionnel.
+    
+    \ite; \textbf{Kaggle Notebooks} : Environnement cloud gratuit avec GPU pour l'exécution de code Python, détourné de son usage initial pour servir de backend API.
+    
+    \item \textbf{HuggingFace Hub} : Plateforme centralisée de distribution de modèles, datasets et espaces, servant de référentiel pour tous les artefacts du projet.
+    
+    \item \textbf{Few-Shot Learning} : Capacité d'un LLM à apprendre à partir de quelques exemples fournis dans le prompt, utilisée ici pour formater les examens générés.
+    
+    \item \textbf{Prompt Engineering} : Conception et optimisation des instructions textuelles données au LLM pour guider son comportement et la qualité des réponses.
+    
+    \item \textbf{Session Management} : Gestion de l'état utilisateur en mémoire (sans base de données persistante) via un dictionnaire avec limites et politique d'éviction LRU.
+    
+    \item \textbf{KaTeX} : Bibliothèque JavaScript de rendu LaTeX rapide, alternative plus légère à MathJax, utilisée pour l'affichage des formules mathématiques.
+    
+    \item \textbf{ReactMarkdown} : Bibliothèque React de rendu de contenu Markdown, extensible via des plugins (remark, rehype).
+    
+    \item \textbf{Architecture 3-Tiers} : Séparation logicielle en trois couches (présentation, application, données) déployées sur des plateformes distinctes.
+    
+    \item \textbf{Tunneling HTTPS} : Exposition sécurisée d'un serveur local à travers Internet via un tunnel chiffré, utilisant Localtunnel comme proxy.
+    
+    \item \textbf{Mise en production free-tier} : Stratégie de déploiement à coût zéro combinant des offres gratuites de plusieurs fournisseurs (Vercel, Kaggle, HuggingFace).
+\end{enumerate}
+
+% ============================================================
+% CHAPITRE 10 : ANALYSE CRITIQUE
+% ============================================================
+\chapter{Analyse Critique \& Pistes d'Amélioration}
+
+\section{Forces du projet}
+\begin{itemize}
+    \item \textbf{Innovation architecturale} : Architecture 3 serveurs 100\% free-tier, unique dans sa conception
+    \item \textbf{Base de connaissances spécifique} : Seul outil existant avec une base de connaissances dédiée au curriculum marocain
+    \item \textbf{Approche duale RAG + Fine-Tuning} : Combinaison optimale pour des réponses précises et pédagogiques
+    \item \textbf{Interface premium} : Design responsive, mobile-first, avec rendu LaTeX des formules
+    \item \textbf{OCR intégré} : Extraction de texte sans coût API externe, confidentialité des données préservée
+    \item \textbf{Couverture fonctionnelle} : 6 fonctionnalités complètes sur 7 prévues
+\end{itemize}
+
+\section{Faiblesses et limitations actuelles}
+\begin{itemize}
+    \item \textbf{Scope limité} : 3 matières sur environ 12 au Bac marocain pour le MVP
+    \item \textbf{Pas de persistance} : Données utilisateur perdues au redémarrage du serveur Kaggle
+    \item \textbf{Dépendance Kaggle} : Sessions limitées à 9h, indisponibilité possible des GPUs
+    \item \textbf{Latence} : Pipeline complet OCR + RAG + LLM = 15 à 45 secondes
+    \item \textbf{Pas d'authentification} : Aucun compte utilisateur ni historique
+    \item \textbf{Localtunnel instable} : Déconnexions aléatoires, changement d'URL à chaque démarrage
+\end{itemize}
+
+\section{Pistes d'amélioration}
+
+\subsection{Court terme}
+\begin{itemize}
+    \item Finaliser les tests d'intégration (Phase 6)
+    \item Ajouter un système de cache Redis pour réduire la latence
+    \item Améliorer le système de fallback (modèle dégradé si GPU indisponible)
+    \item Automatiser la mise à jour de l'URL Localtunnel dans le frontend
+\end{itemize}
+
+\subsection{Moyen terme}
+\begin{itemize}
+    \item Étendre à toutes les matières du Bac (SVT, SI, SES, Philosophie, Arabe, Français...)
+    \item Base de données persistante (Supabase PostgreSQL) pour comptes et historiques
+    \item Comptes utilisateurs avec authentification
+    \item Dashboard analytics pour le suivi des progrès élèves
+    \item Version mobile native (React Native / Flutter)
+\end{itemize}
+
+\subsection{Long terme}
+\begin{itemize}
+    \item Mode hors-ligne avec modèles on-device (quantification extrême)
+    \item Extension aux autres niveaux (1ère Bac, Tronc Commun, Collège)
+    \item Communauté de professeurs contributeurs pour enrichir la base de connaissances
+    \item Support complet des matières arabes (Philosophie, Arabe, Éducation Islamique)
+    \item Déploiement sur des serveurs dédiés (AWS, GCP) pour plus de stabilité
+\end{itemize}
+
+\subsection*{Conclusion partielle}
+Le projet démontre une preuve de concept solide avec des forces architecturales indéniables. Les limitations actuelles sont connues et des pistes d'amélioration concrètes sont identifiées pour chaque niveau de priorité.
+
+% ============================================================
+% CHAPITRE 11 : CONCLUSION
+% ============================================================
+\chapter{Conclusion}
+
+\section{Bilan du projet}
+Le projet Rafiki — رفيقي a atteint ses objectifs principaux :
+\begin{itemize}
+    \item \textbf{7 phases} réalisées sur un planning de ~10 semaines
+    \item \textbf{6 fonctionnalités} complètes sur 7 prévues (MVP couvert à 85\%)
+    \item \textbf{Architecture 3 serveurs} fonctionnelle avec coût d'exploitation zéro
+    \item \textbf{Base de connaissances} pré-construite pour 3 matières
+    \item \textbf{Modèle fine-tuné} disponible publiquement sur HuggingFace
+\end{itemize}
+
+\section{Atteinte des objectifs}
+Le projet répond à la problématique initiale : offrir un accompagnement scolaire personnalisé, gratuit et adapté au curriculum marocain. Les réponses de l'IA sont ancrées dans le programme officiel via le RAG, l'outil est accessible sans frais grâce à l'architecture free-tier, et le format bilingue (français/anglais) est supporté.
+
+\section{Bilan personnel}
+Ce projet a permis l'acquisition et la mise en pratique de compétences avancées :
+\begin{itemize}
+    \item \textbf{IA/NLP} : RAG, fine-tuning LoRA, quantification 4-bit, embeddings, prompt engineering
+    \item \textbf{Développement} : FastAPI, Next.js 16, Tailwind CSS, API REST, OCR
+    \item \textbf{Infrastructure} : Déploiement Kaggle, Localtunnel, Vercel, HuggingFace
+    \item \textbf{Gestion de projet} : Planification par phases, validation itérative, documentation
+\end{itemize}
+
+\section{Impact potentiel}
+Rafiki a le potentiel d'aider des milliers d'élèves marocains à préparer le Baccalauréat gratuitement, en combinant le meilleur de l'IA avec le programme officiel. Le projet est open-source, librement accessible, et conçu pour être étendu et amélioré par la communauté.
+
+\section*{Remerciements}
+Je remercie [Professeur] pour son encadrement, mes camarades pour leur soutien, et la communauté open-source pour les outils et modèles qui ont rendu ce projet possible.
+
+% ============================================================
+% ANNEXES
+% ============================================================
+\appendix
+\chapter{Annexes}
+
+\section{Annexe A : Diagramme d'architecture complet}
+\begin{verbatim}
++--------------------------------------------------------------------+
+|                        DIAGRAMME D'ARCHITECTURE                     |
++--------------------------------------------------------------------+
+                                                                       
+    +------------------+      +------------------+                    
+    |   ÉLÈVE (PC)     |      |  ÉLÈVE (Mobile)  |                    
+    +--------+---------+      +--------+---------+                    
+             |                         |                              
+             +---- HTTPS (Vercel) -----+                              
+                         |                                            
+                         v                                            
+            +---------------------------+                            
+            |       VERCEL              |                            
+            |   Frontend Next.js 16     |                            
+            |   Pages:                  |                            
+            |   /chat (Q&A)            |                            
+            |   /correction             |                            
+            |   /cadre                  |                            
+            |   /course                 |                            
+            |   /exercise               |                            
+            |   /exam-gen               |                            
+            +-----------+---------------+                            
+                        |                                            
+                        | API REST (fetch)                           
+                        |                                            
+                        v                                            
+            +---------------------------+                            
+            |   KAGGLE - Backend        |                            
+            |   FastAPI + Uvicorn       |                            
+            |                           |                            
+            |   GPU 0:                  |                            
+            |   rafiki-qwen-2.5-finetune|                            
+            |   (4-bit, 900MB VRAM)     |                            
+            |   + generate_content()    |                            
+            |   + generate_answer()      |                            
+            |   + correct_exercise()     |                            
+            |                           |                            
+            |   GPU 1:                  |                            
+            |   Qwen2.5-VL-3B (4-bit)   |                            
+            |   + OCR extraction         |                            
+            |                           |                            
+            |   RAM:                    |                            
+            |   - ChromaDB global       |                            
+            |   - ChromaDB session      |                            
+            |   - Conversation memory   |                            
+            |   - Few-shot exam data    |                            
+            +-----------+---------------+                            
+                        |                                            
+                        | HuggingFace Hub                            
+                        v                                            
+            +---------------------------+                            
+            |   HUGGINGFACE - Storage   |                            
+            |   Models:                 |                            
+            |   rafiki-qwen-2.5-finetune|                            
+            |   Qwen2.5-VL-3B-Instruct  |                            
+            |   Datasets:               |                            
+            |   AI-Adaptive-Learning-    |                            
+            |   Index (ChromaDB)        |                            
+            |   Q&A fine-tuning pairs   |                            
+            +---------------------------+                            
+                                                                       
+            +---------------------------+                            
+            |   LOCALTUNNEL             |                            
+            |   https://xxx.loca.lt     |                            
+            |   Tunnel HTTPs public     |                            
+            +---------------------------+                            
+\end{verbatim}
+
+\section{Annexe B : Exemples de Q\&A générées}
+
+\subsection{Mathématiques}
+\begin{verbatim}
+Question : Comment calculer la dérivée de f(x) = 3x² + 2x ?
+
+Réponse :
+Pour calculer la dérivée de f(x) = 3x² + 2x :
+
+1. Rappel : La dérivée de x^n est n·x^{n-1}
+2. La dérivée de 3x² est : 3 × 2x^{2-1} = 6x
+3. La dérivée de 2x est : 2 × 1x^{1-1} = 2
+4. Donc f'(x) = 6x + 2
+
+Vérification : f'(x) = 6x + 2
+\end{verbatim}
+
+\subsection{Physique-Chimie}
+\begin{verbatim}
+Question : Explique le principe d'inertie
+
+Réponse :
+Le principe d'inertie (1ère loi de Newton) stipule que :
+- Un corps au repos reste au repos
+- Un corps en mouvement rectiligne uniforme 
+  reste en mouvement rectiligne uniforme
+tant qu'aucune force extérieure nette n'agit sur lui.
+
+Exemple : Une balle lancée sur une surface glacée 
+continue indéfiniment à vitesse constante (en l'absence 
+de frottements).
+\end{verbatim}
+
+\subsection{English}
+\begin{verbatim}
+Question : Explain the difference between present perfect 
+and past simple
+
+Answer :
+The present perfect (have/has + past participle) is used for:
+- Actions that started in the past and continue to the present
+- Past actions with present relevance
+- Experiences without specifying when
+
+Example: "I have visited Paris" (experience, no specific time)
+
+The past simple is used for:
+- Completed actions at a specific time in the past
+- Sequences of past events
+
+Example: "I visited Paris in 2023" (specific time)
+\end{verbatim}
+
+\section{Annexe C : Extraits de code clés}
+
+\subsection{llm\_service.py — Fonction generate\_content()}
+\begin{lstlisting}
+def generate_content(context, instruction, system_prompt,
+                     max_tokens=2048, temperature=0.7):
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user",
+         "content": f"Contexte:\n{context}\n\n{instruction}"}
+    ]
+
+    prompt = tokenizer.apply_chat_template(
+        messages, tokenize=False,
+        add_generation_prompt=True
+    )
+
+    inputs = tokenizer(prompt, return_tensors="pt").to(device)
+
+    with torch.no_grad():
+        outputs = model.generate(
+            **inputs,
+            max_new_tokens=max_tokens,
+            temperature=temperature,
+            do_sample=True,
+            pad_token_id=tokenizer.pad_token_id
+        )
+
+    response = tokenizer.decode(
+        outputs[0][inputs['input_ids'].shape[1]:],
+        skip_special_tokens=True
+    )
+    return response.strip()
+\end{lstlisting}
+
+\subsection{exercise\_service.py — Fonction generate\_exercise()}
+\begin{lstlisting}
+def generate_exercise(subject, topic):
+    # RAG context retrieval
+    context = retrieve_context(
+        query=f"{subject} {topic} exercice",
+        subject=subject_display,
+        k=5
+    )
+
+    # Build prompt
+    system_prompt = (
+        f"Tu es un professeur de {subject} au Maroc. "
+        "Génère UN exercice original et difficile sur "
+        f"le thème '{topic}'."
+    )
+
+    instruction = (
+        f"Génère un exercice sur '{topic}' en {subject}.\n"
+        "Format :\n"
+        "[énoncé de l'exercice]\n"
+        "---SOLUTION---\n"
+        "[solution complète pas-à-pas]"
+    )
+
+    # Generate via LLM
+    response = generate_content(
+        context=context,
+        instruction=instruction,
+        system_prompt=system_prompt,
+        max_tokens=2048,
+        temperature=0.7
+    )
+
+    # Split at marker
+    parts = response.split("---SOLUTION---")
+    exercise = parts[0].strip()
+    solution = parts[1].strip() if len(parts) > 1 else ""
+
+    return {"exercise": exercise, "solution": solution}
+\end{lstlisting}
+
+\subsection{Pipeline RAG dans rag\_service.py}
+\begin{lstlisting}
+def retrieve_context(query, subject, k=5):
+    collection = chroma_client.get_collection(
+        name=SUBJECT_TO_COLLECTION[subject]
+    )
+
+    results = collection.query(
+        query_texts=[query],
+        n_results=k
+    )
+
+    return "\n".join(results['documents'][0])
+
+def ask_question(question, subject, session_id=None):
+    context = retrieve_context(question, subject)
+
+    # Build prompt with conversation history
+    history = get_conversation(session_id)
+    system_prompt = build_system_prompt(subject, history)
+
+    response = generate_content(
+        context=context,
+        instruction=question,
+        system_prompt=system_prompt
+    )
+
+    # Store in conversation memory
+    add_message(session_id, "user", question)
+    add_message(session_id, "assistant", response)
+
+    return {"answer": response, "session_id": session_id}
+\end{lstlisting}
+
+\section{Annexe D : Captures d'écran}
+Les captures d'écran suivantes illustrent l'interface utilisateur :
+
+\begin{figure}[h!]
+    \centering
+    \fbox{\textcolor{gray!50}{\begin{minipage}{0.8\textwidth}
+        \centering
+        \vspace{3cm}
+        \textbf{Capture : Page d'accueil}
+        \vspace{3cm}
+    \end{minipage}}}
+    \caption{Page d'accueil de Rafiki}
+    \label{fig:landing}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \fbox{\textcolor{gray!50}{\begin{minipage}{0.8\textwidth}
+        \centering
+        \vspace{3cm}
+        \textbf{Capture : Interface Q\&A Chat}
+        \vspace{3cm}
+    \end{minipage}}}
+    \caption{Chat Q\&A avec réponse pas-à-pas}
+    \label{fig:chat}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \fbox{\textcolor{gray!50}{\begin{minipage}{0.8\textwidth}
+        \centering
+        \vspace{3cm}
+        \textbf{Capture : Correction d'exercice}
+        \vspace{3cm}
+    \end{minipage}}}
+    \caption{Interface de correction avec rendu LaTeX}
+    \label{fig:correction}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \fbox{\textcolor{gray!50}{\begin{minipage}{0.8\textwidth}
+        \centering
+        \vspace{3cm}
+        \textbf{Capture : Cadre Référenciel}
+        \vspace{3cm}
+    \end{minipage}}}
+    \caption{Arbre interactif du Cadre Référenciel}
+    \label{fig:cadre}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \fbox{\textcolor{gray!50}{\begin{minipage}{0.8\textwidth}}
+        \centering
+        \vspace{3cm}
+        \textbf{Capture : Visualisation des cours}
+        \vspace{3cm}
+    \end{minipage}}}
+    \caption{Cours avec rendu LaTeX et navigation chapitres}
+    \label{fig:course}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \fbox{\textcolor{gray!50}{\begin{minipage}{0.8\textwidth}
+        \centering
+        \vspace{3cm}
+        \textbf{Capture : Génération d'exercice}
+        \vspace{3cm}
+    \end{minipage}}}
+    \caption{Génération d'exercice avec solution pliable}
+    \label{fig:exercise}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \fbox{\textcolor{gray!50}{\begin{minipage}{0.8\textwidth}
+        \centering
+        \vspace{3cm}
+        \textbf{Capture : Génération d'examen}
+        \vspace{3cm}
+    \end{minipage}}}
+    \caption{Génération d'examen avec Q/Corr pliables}
+    \label{fig:exam}
+\end{figure}
+
+\section{Annexe E : Dépendances et bibliothèques}
+
+\subsection{Dépendances backend}
+\begin{verbatim}
+transformers==4.47.1      # Modèles LLM
+bitsandbytes==0.45.4      # Quantification 4-bit
+torch==2.6.0              # Deep learning
+accelerate==1.5.2          # Multi-GPU
+peft==0.14.0              # LoRA fine-tuning
+fastapi==0.115.6          # API REST
+uvicorn==0.34.0           # Serveur ASGI
+pydantic==2.10.5          # Validation données
+python-multipart==0.0.20  # Upload fichiers
+chromadb==0.6.3           # Base vectorielle
+sentence-transformers==3.4.1  # Embeddings
+PyMuPDF==1.25.3           # Extraction PDF
+pillow==11.1.0            # Traitement images
+qwen-vl-utils==0.0.8      # Utilitaires Vision LLM
+requests==2.32.3          # Requêtes HTTP
+\end{verbatim}
+
+\subsection{Dépendances frontend}
+\begin{verbatim}
+next@16.2.7               # Framework React
+react@19.1.0              # Bibliothèque UI
+tailwindcss@4             # CSS utilitaire
+react-markdown@9          # Rendu Markdown
+remark-math@6             # Plugin math Markdown
+rehype-katex@7            # Plugin KaTeX Markdown
+katex@0.16                # Rendu LaTeX
+remark-gfm@4              # Plugin GFM (tableaux)
+\end{verbatim}
+
+\end{document}

@@ -17,7 +17,7 @@ COURSE_FILES = {
 SUBJECT_NAMES = {
     "maths": "Mathématiques",
     "physics": "Physique-Chimie",
-    "english": "Anglais",
+    "english": "English",
 }
 
 _cache = {}

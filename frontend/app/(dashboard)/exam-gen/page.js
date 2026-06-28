@@ -14,7 +14,7 @@ export default function PageContent() {
     const [error, setError] = useState("");
     const [expandedCorr, setExpandedCorr] = useState({});
 
-    const subjectNames = { maths: "Mathématiques", physics: "Physique-Chimie", english: "Anglais" };
+    const subjectNames = { maths: "Mathématiques", physics: "Physique-Chimie", english: "English" };
 
     useEffect(() => {
         fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/generate/topics`)

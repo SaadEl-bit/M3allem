@@ -17,7 +17,7 @@ CADRE_FILES = {
 SUBJECT_NAMES = {
     "maths": "Mathématiques",
     "physics": "Physique-Chimie",
-    "english": "Anglais",
+    "english": "English",
 }
 
 _cache = {}
@@ -50,9 +50,8 @@ def parse_file(subject: str) -> dict:
     struct = {
         "subject": SUBJECT_NAMES.get(subject, subject),
         "subject_key": subject,
-        "type": "objectives" if subject == "maths" else "document",
+        "type": "objectives",
         "domains": [],
-        "sections": [],
     }
 
     current_domain = None
@@ -100,10 +99,17 @@ def parse_file(subject: str) -> dict:
                 current_subdomain = None
 
         else:
-            if subject != "maths":
-                struct["sections"].append({
-                    "type": "text",
-                    "content": line,
+            # Treat content lines as objectives under the current sub_domain
+            if current_domain is not None:
+                if current_subdomain is None:
+                    current_subdomain = {
+                        "name": current_domain["name"],
+                        "objectives": [],
+                    }
+                    current_domain["sub_domains"].append(current_subdomain)
+                current_subdomain["objectives"].append({
+                    "code": None,
+                    "text": line,
                 })
 
     for domain in struct["domains"]:

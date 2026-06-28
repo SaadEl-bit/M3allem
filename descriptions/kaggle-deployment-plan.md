@@ -71,8 +71,42 @@ os.system(f'git config user.name "{github_user}"')
 with open(".env", "w") as f:
     f.write(f"HF_TOKEN={hf_token}\nCHROMA_DB_DIR=./chroma_db_cache\nVL_MODEL_ID=Qwen/Qwen2.5-VL-3B-Instruct\n")
 
+# ── Detect local RAG index dataset (skip HF download) ──────────────
+# ⚠️ Add ALL possible paths — Kaggle may mount under /kaggle/input/ OR /kaggle/input/datasets/{username}/
+#    Replace "2bac-dataset-index" with your actual dataset slug if different.
+RAG_INDEX_CANDIDATES = [
+    "/kaggle/input/rag-index",
+    "/kaggle/input/datasets/saadelouakate/rag-index",
+    "/kaggle/input/2bac-dataset-index",
+    "/kaggle/input/datasets/saadelouakate/2bac-dataset-index",  # ← actual path used in this project
+]
+local_rag = None
+for p in RAG_INDEX_CANDIDATES:
+    chroma_subdir = os.path.join(p, "chromadb")
+    if os.path.isdir(chroma_subdir) and os.path.isfile(os.path.join(chroma_subdir, "chroma.sqlite3")):
+        local_rag = chroma_subdir
+        break
+
+if local_rag:
+    print(f"📂 Found local RAG index at: {local_rag}")
+    # Copy to writable location (Kaggle /kaggle/input/ is read-only, ChromaDB needs write access)
+    import shutil
+    writable_rag = "/kaggle/working/chromadb_index"
+    if os.path.isdir(writable_rag):
+        shutil.rmtree(writable_rag)
+    shutil.copytree(local_rag, writable_rag)
+    print(f"📂 Copied RAG index to writable path: {writable_rag}")
+    # Update .env to use the writable path
+    with open(".env", "a") as f:
+        f.write(f"CHROMA_DB_DIR={writable_rag}\n")
+else:
+    print("ℹ️  No local RAG index dataset found — will download from HuggingFace on first request")
+
+# ── Install dependencies ───────────────────────────────────────────
 !pip install -q -r requirements_all.txt
 !pip install -q transformers accelerate bitsandbytes qwen-vl-utils torchvision
+# ⚠️ Pin chromadb to 0.4.24 + numpy 1.26.4 (newer versions break with existing persistent DB)
+!pip install -q numpy==1.26.4 chromadb==0.4.24
 !npm install -g localtunnel
 print("✅ Done")
 ```
@@ -141,6 +175,7 @@ generator = pipeline("text-generation", model=TEXT_MODEL_PATH, device_map="cuda:
 logger.info("Text model loaded on GPU 0")
 
 def generate_answer(context: str, question: str, history: list = None) -> str:
+    torch.cuda.empty_cache()
     system = "Vous etes Rafiki, un tuteur IA pour les etudiants marocains (2eme Bac). Utilisez le contexte fourni. Vous avez une conversation avec l'etudiant."
     prompt = f"<|im_start|>system\n{system}\nContexte du cours:\n{context}<|im_end|>\n"
     if history:
@@ -152,12 +187,14 @@ def generate_answer(context: str, question: str, history: list = None) -> str:
     return res[0]["generated_text"].split("<|im_start|>assistant\n")[-1]
 
 def correct_exercise(context: str, exercise_text: str) -> str:
+    torch.cuda.empty_cache()
     system = "Vous etes Rafiki. Corrigez cet exercice etape par etape."
     prompt = f"<|im_start|>system\n{system}\nContexte:\n{context}<|im_end|>\n<|im_start|>user\n{exercise_text}<|im_end|>\n<|im_start|>assistant\n"
     res = generator(prompt, max_new_tokens=2000, temperature=0.3)
     return res[0]["generated_text"].split("<|im_start|>assistant\n")[-1]
 
 def generate_content(context: str, instruction: str, system_prompt: str, max_tokens: int = 2000, temperature: float = 0.3) -> str:
+    torch.cuda.empty_cache()
     prompt = f"<|im_start|>system\n{system_prompt}<|im_end|>\n<|im_start|>user\nContexte du cours:\n{context}\n\n{instruction}<|im_end|>\n<|im_start|>assistant\n"
     res = generator(prompt, max_new_tokens=max_tokens, temperature=temperature)
     return res[0]["generated_text"].split("<|im_start|>assistant\n")[-1]
@@ -192,6 +229,7 @@ def file_to_base64_images(file_bytes: bytes, filename: str) -> List[str]:
     return images
 
 def extract_text_via_vl(base64_images: List[str]) -> str:
+    torch.cuda.empty_cache()
     extracted = ""
     for idx, b64 in enumerate(base64_images):
         messages = [{"role": "user", "content": [{"type": "image", "image": f"data:image/png;base64,{b64}"}, {"type": "text", "text": "Extract all text and math. Use LaTeX for math."}]}]
@@ -200,6 +238,7 @@ def extract_text_via_vl(base64_images: List[str]) -> str:
         inputs = processor(text=[text], images=img_inputs, padding=True, return_tensors="pt").to("cuda:1")
         out = model.generate(**inputs, max_new_tokens=2000)
         out = out[:, inputs.input_ids.shape[1]:]
+        torch.cuda.empty_cache()
         extracted += f"\n\n--- Page {idx+1} ---\n\n" + processor.decode(out[0], skip_special_tokens=True)
     return extracted.strip()
 '''
@@ -289,6 +328,8 @@ print(f"{'='*50}")
 | Localtunnel dead | Re-run Cell 3 |
 | Model not loading / `HFValidationError` | Run **Cell 2** first — it discovers the correct path & handles nested subdirs |
 | `Repo id must be in the form...` | Same fix — the model dir has an extra nesting level; Cell 2 now finds it automatically |
+| `AttributeError: 'RustBindingsAPI' object has no attribute 'bindings'` | ChromaDB version mismatch. Pin `chromadb==0.4.24` + `numpy==1.26.4` in Cell 1 (see pip section). |
+| `TypeError: object of type 'int' has no len()` | Same fix — ChromaDB 0.5+ is incompatible with existing DB. Use `chromadb==0.4.24`. |
 
 ---
 
@@ -347,33 +388,17 @@ The index will be mounted at:
 
 ### Step 4.4 — Auto-detect in Cell 1
 
-Update **CELL 1** so it detects the local RAG index and points to it instead of downloading:
+The RAG index detection code is **already embedded** directly in CELL 1 (see Cell 1 above).  
+No manual insertion needed — it auto-detects the dataset at any of these paths:
 
-```python
-# ── Add this AFTER the .env file creation in CELL 1 ──────────────────
-
-# Detect local RAG index dataset (skip HF download)
-RAG_INDEX_CANDIDATES = [
-    "/kaggle/input/rag-index",
-    "/kaggle/input/datasets/saadelouakate/rag-index",
-]
-local_rag = None
-for p in RAG_INDEX_CANDIDATES:
-    chroma_subdir = os.path.join(p, "chromadb")
-    if os.path.isdir(chroma_subdir) and os.path.isfile(os.path.join(chroma_subdir, "chroma.sqlite3")):
-        local_rag = chroma_subdir
-        break
-
-if local_rag:
-    print(f"📂 Found local RAG index at: {local_rag}")
-    # Update .env to use the local path
-    with open(".env", "a") as f:
-        f.write(f"CHROMA_DB_DIR={local_rag}\n")
-else:
-    print("ℹ️  No local RAG index dataset found — will download from HuggingFace on first request")
+```
+/kaggle/input/rag-index/
+/kaggle/input/2bac-dataset-index/
+/kaggle/input/datasets/saadelouakate/rag-index/
+/kaggle/input/datasets/saadelouakate/2bac-dataset-index/
 ```
 
-Place this snippet right after the `.env` creation block (after line 72 in the current CELL 1).
+If found, it overrides `.env` with the local path. If not found, it falls back to HF download.
 
 ### Step 4.5 — What changes?
 

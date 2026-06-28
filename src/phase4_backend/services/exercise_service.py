@@ -24,7 +24,7 @@ def get_topics() -> dict:
     TOPICS_CACHE = topics
     return topics
 
-SUBJECT_DISPLAY = {"maths": "Mathématiques", "physics": "Physique-Chimie", "english": "Anglais"}
+SUBJECT_DISPLAY = {"maths": "Mathématiques", "physics": "Physique-Chimie", "english": "English"}
 
 def generate_exercise(subject_key: str, topic: str) -> dict:
     subject_display = SUBJECT_DISPLAY.get(subject_key, subject_key)
